@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Requirement <%= requirement.id %>: <%= requirement.name %></title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Requirement <%= requirement.id %>: <%= requirement.name %></h1>
+        <p class="requirement-description"><%= requirement.description %></p>
+
+        <!--Back to Requirements Button-->
+        <a href="/requirements" class="button back-button">Back to All Requirements</a>
+
+        <!--Question Table with Compliance Options -->
+        <form action="/submit-scores" method="POST" class="compliance-form">
+            <input type="hidden" name="requirement_id" value="<%= requirement.id %>">
+            <input type="hidden" name="nextId" value="<%= nextId %>">
+
+            <table class="question-table">
+                <thead>
+                    <tr>
+                        <th>Question</th>
+                        <th>Compliance Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% requirement.questions.forEach(question => { %>
+                        <tr>
+                            <td class="question-text"><%= question.text %></td>
+                            <td class="compliance-status">
+                                <select name="compliance[<%= question.question_id %>]" class="status-dropdown">
+                                    <option value="Yes">Yes</option>
+                                    <option value="Yes with CCW">Yes with CCW</option>
+                                    <option value="No">No</option>
+                                    <option value="N/A">N/A</option>
+                                    <option value="Not Tested">Not Tested</option>
+                                </select>
+                            </td>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+
+            <button type="submit" class="button submit-button">Submit Compliance</button>
+        </form>
+
+        <!--Navigation Buttons-->
+        <div class="navigation">
+            <% if (previousId) { %>
+                <a href="/requirements/<%= previousId %>" class="button nav-button previous-button">Previous</a>
+            <% } %>
+            <% if (nextId) { %>
+                <a href="/requirements/<%= nextId %>" class="button nav-button next-button">Next</a>
+            <% } %>
+        </div>
+    </div>
+</body>
+</html>
+

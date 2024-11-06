@@ -1,0 +1,16 @@
+{
+    "name": "pci-compliance-app",
+    "version": "1.0.0",
+    "description": "PCI DSS Compliance Application",
+    "main": "app.js",
+    "scripts": {
+      "start": "node app.js"
+    },
+    "dependencies": {
+      "dotenv": "^10.0.0",
+      "express": "^4.17.1",
+      "mysql2": "^3.11.3",
+      "ejs": "^3.1.6"
+    }
+  }
+  

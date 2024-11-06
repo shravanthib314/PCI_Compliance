@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Requirement Scores</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Requirement Scores</h1>
+        <ul>
+            <% results.forEach(result => { %>
+                <li>Requirement <%= result.requirement_id %>: <%= result.compliance_status %></li>
+            <% }) %>
+        </ul>
+    </div>
+</body>
+</html>

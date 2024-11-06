@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Final Compliance Score</title>
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Your Final Compliance Score</h1>
+        <p class="final-score">Your score: <%= finalScore %>%</p>
+        
+        <div class="status-counts">
+            <p>Requirements Compliant: <%= compliantCount %></p>
+            <p>Requirements Non-Compliant: <%= nonCompliantCount %></p>
+            <p>Requirements Not Applicable (N/A): <%= naCount %></p>
+        </div>
+        
+        
+        <a href="/requirements" class="button back-link center">Return to Requirements</a>
+    </div>
+</body>
+</html>
