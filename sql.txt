@@ -1,0 +1,268 @@
+CREATE DATABASE IF NOT EXISTS PCI;
+USE PCI;
+
+-- Users Table
+CREATE TABLE users (
+    user_id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL UNIQUE,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Requirements Table
+CREATE TABLE requirements (
+    requirement_id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    compliance_level ENUM('high', 'medium', 'low') DEFAULT 'medium'
+);
+
+-- Questions Table (Linked to Requirements)
+CREATE TABLE questions (
+    question_id INT AUTO_INCREMENT PRIMARY KEY,
+    requirement_id INT NOT NULL,
+    text TEXT NOT NULL,
+    weight FLOAT NOT NULL DEFAULT 1.0,
+    FOREIGN KEY (requirement_id) REFERENCES requirements(requirement_id) ON DELETE CASCADE
+);
+
+-- Scores Table (Tracks User Scores for Each Question)
+CREATE TABLE scores (
+    user_id INT,
+    question_id INT,
+    score DECIMAL(5, 2), -- Score out of 100, allowing decimals for precision
+    PRIMARY KEY (user_id, question_id),
+    FOREIGN KEY (question_id) REFERENCES questions(question_id)
+);
+
+
+
+
+-- Compliance Scores Table (Overall User Compliance Scores)
+CREATE TABLE compliance_scores (
+    compliance_score_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    final_score FLOAT CHECK (final_score >= 0 AND final_score <= 100),
+    calculated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
+
+-- Audit Logs Table (Tracks User Actions)
+CREATE TABLE audit_logs (
+    log_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT,
+    action VARCHAR(255) NOT NULL,
+    action_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    details TEXT,
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE SET NULL
+);
+
+
+
+INSERT INTO requirements (name, description, compliance_level) VALUES
+('Install and Maintain a Firewall Configuration', 'Establish and implement firewall and router configuration standards.', 'high'),
+('Do Not Use Vendor-Supplied Defaults', 'Ensure vendor-supplied defaults are changed to increase security.', 'high'),
+('Protect Stored Cardholder Data', 'Implement strong protection measures for stored cardholder data.', 'high'),
+('Encrypt Transmission of Cardholder Data', 'Use encryption to secure cardholder data during transmission.', 'high'),
+('Protect Systems Against Malware', 'Deploy anti-virus software and keep it updated.', 'medium'),
+('Develop and Maintain Secure Systems', 'Secure system development processes and apply patches.', 'high'),
+('Restrict Access to Cardholder Data by Business Need to Know', 'Limit access to cardholder data to those who need it.', 'high'),
+('Identify and Authenticate Access to System Components', 'Identify and authenticate users accessing system components.', 'high'),
+('Restrict Physical Access to Cardholder Data', 'Implement physical security controls for cardholder data.', 'medium'),
+('Track and Monitor All Access to Network Resources and Cardholder Data', 'Maintain audit trails and review logs regularly.', 'high'),
+('Regularly Test Security Systems and Processes', 'Conduct regular testing and monitoring of security systems.', 'high'),
+('Maintain a Policy that Addresses Information Security', 'Establish a comprehensive information security policy.', 'high');
+
+
+
+
+-- Requirement 1: Install and Maintain a Firewall Configuration
+INSERT INTO questions (requirement_id, text, weight) VALUES
+(1, 'Are firewall and router configuration standards established and implemented to include a formal process for approving and testing network connections and firewall/router configuration changes?', 1.0),
+(1, 'Is there a current network diagram that documents all connections between the cardholder data environment and other networks?', 1.0),
+(1, 'Is there a current diagram that shows all cardholder data flows across systems and networks?', 1.0),
+(1, 'Is a firewall required and implemented at each Internet connection and between any demilitarized zone (DMZ) and the internal network zone?', 1.0),
+(1, 'Are groups, roles, and responsibilities for logical management of network components documented in the firewall and router configuration standards?', 1.0),
+(1, 'Are firewall and router configuration standards reviewed every six months?', 1.0),
+(1, 'Do firewall configurations restrict connections between untrusted networks and the cardholder data environment?', 1.0),
+(1, 'Are router configuration files secured from unauthorized access?', 1.0),
+(1, 'Are perimeter firewalls installed between all wireless networks and the cardholder data environment?', 1.0);
+
+-- Requirement 2: Do Not Use Vendor-Supplied Defaults
+INSERT INTO questions (requirement_id, text, weight) VALUES
+(2, 'Are vendor-supplied defaults changed on all system components before installation on the network?', 1.0),
+(2, 'Are unnecessary default accounts removed or disabled?', 1.0),
+(2, 'For wireless environments, are wireless vendor defaults changed upon installation, including encryption keys and SNMP community strings?', 1.0),
+(2, 'Are configuration standards developed for all system components based on industry-accepted system hardening standards?', 1.0),
+(2, 'Are system configuration standards updated as new vulnerability issues are identified?', 1.0),
+(2, 'Do system configuration standards require only one primary function per server to prevent functions that require different security levels from co-existing?', 1.0),
+(2, 'Are system configuration standards applied to prevent unauthorized services, protocols, and daemons?', 1.0),
+(2, 'Is non-console administrative access encrypted?', 1.0),
+(2, 'Is an inventory of all system components within PCI DSS scope maintained and kept current?', 1.0);
+
+-- Requirement 3: Protect Stored Cardholder Data
+INSERT INTO questions (requirement_id, text, weight) VALUES
+(3, 'Are data-retention and disposal policies and procedures in place to limit data storage amounts and retention time to that required for legal, regulatory, and/or business requirements?', 1.0),
+(3, 'Is sensitive authentication data deleted upon completion of the authorization process?', 1.0),
+(3, 'Is cardholder data stored securely by using cryptographic mechanisms like one-way hashes, truncation, or strong cryptography?', 1.0),
+(3, 'Are cryptographic keys used for encryption of stored cardholder data protected against disclosure and misuse?', 1.0),
+(3, 'Are access to cryptographic keys restricted to the fewest number of custodians necessary?', 1.0),
+(3, 'Are all key-management processes and procedures fully documented and implemented?', 1.0);
+
+-- Requirement 4: Encrypt Transmission of Cardholder Data
+INSERT INTO questions (requirement_id, text, weight) VALUES
+(4, 'Are strong cryptography and security protocols used to safeguard sensitive cardholder data during transmission over open, public networks?', 1.0),
+(4, 'Are only trusted keys and/or certificates accepted for secure transmissions?', 1.0),
+(4, 'Are security protocols implemented to use only secure configurations, and do they not support insecure versions or configurations?', 1.0),
+(4, 'For TLS implementations, is TLS enabled whenever cardholder data is transmitted or received?', 1.0),
+(4, 'Are policies in place to prohibit the sending of unprotected PANs via end-user messaging technologies?', 1.0);
+
+-- Requirement 5: Protect Systems Against Malware
+INSERT INTO questions (requirement_id, text, weight) VALUES
+(5, 'Is anti-virus software deployed on all systems commonly affected by malicious software?', 1.0),
+(5, 'Are all anti-virus programs capable of detecting, removing, and protecting against all known types of malicious software?', 1.0),
+(5, 'Are all anti-virus mechanisms updated with current definitions and set to perform periodic scans?', 1.0),
+(5, 'Are all anti-virus mechanisms generating audit logs, and are logs retained according to PCI DSS requirements?', 1.0);
+
+-- Requirement 6: Develop and Maintain Secure Systems
+INSERT INTO questions (requirement_id, text, weight) VALUES
+(6, 'Are system components and software protected from known vulnerabilities by applying vendor-supplied security patches?', 1.0),
+(6, 'Are software development processes based on industry standards for secure coding practices?', 1.0),
+(6, 'Are custom code and application changes reviewed prior to production release to identify any security vulnerabilities?', 1.0),
+(6, 'Are change control processes and procedures followed for all changes to system components?', 1.0);
+
+-- Requirement 7: Restrict Access to Cardholder Data by Business Need to Know
+INSERT INTO questions (requirement_id, text, weight) VALUES
+(7, 'Are access rights based on job role, ensuring that access is restricted by business need to know?', 1.0),
+(7, 'Are access controls in place to enforce this need-to-know policy across all systems?', 1.0),
+(7, 'Are user access roles reviewed periodically to confirm that users have the appropriate level of access?', 1.0);
+
+-- Requirement 8: Identify and Authenticate Access to System Components
+INSERT INTO questions (requirement_id, text, weight) VALUES
+(8, 'Are user accounts unique and traceable to individual users?', 1.0),
+(8, 'Are users assigned unique user IDs and are passwords complex and updated regularly?', 1.0),
+(8, 'Are multi-factor authentication methods used for all remote access to the cardholder data environment?', 1.0),
+(8, 'Are inactive accounts removed or disabled promptly?', 1.0);
+
+-- Requirement 9: Restrict Physical Access to Cardholder Data
+INSERT INTO questions (requirement_id, text, weight) VALUES
+(9, 'Are physical security controls in place to restrict access to the cardholder data environment?', 1.0),
+(9, 'Is access to sensitive areas logged and reviewed regularly?', 1.0),
+(9, 'Are media containing cardholder data physically secure?', 1.0),
+(9, 'Are policies and procedures established for the secure disposal of media containing cardholder data?', 1.0);
+
+-- Requirement 10: Track and Monitor All Access to Network Resources and Cardholder Data
+INSERT INTO questions (requirement_id, text, weight) VALUES
+(10, 'Are audit trails maintained for all system components to track all user activities, including access to cardholder data?', 1.0),
+(10, 'Are logs for system components reviewed regularly?', 1.0),
+(10, 'Are security policies established for the retention and management of log data?', 1.0),
+(10, 'Is access to log files restricted to prevent unauthorized modifications?', 1.0);
+
+-- Requirement 11: Regularly Test Security Systems and Processes
+INSERT INTO questions (requirement_id, text, weight) VALUES
+(11, 'Are internal and external vulnerability scans conducted quarterly and after any significant changes?', 1.0),
+(11, 'Are intrusion detection systems in place to detect and alert on unauthorized network access?', 1.0),
+(11, 'Are penetration tests performed annually and after significant network or application changes?', 1.0),
+(11, 'Are file integrity monitoring systems configured to alert personnel to unauthorized modifications?', 1.0);
+
+-- Requirement 12: Maintain a Policy that Addresses Information Security
+INSERT INTO questions (requirement_id, text, weight) VALUES
+(12, 'Is there a formal information security pscoresolicy that addresses PCI DSS compliance and cardholder data protection?', 1.0),
+(12, 'Are policies and procedures implemented to manage and control service providers with access to the cardholder data environment?', 1.0),
+(12, 'Are information security policies and procedures reviewed annually and updated as necessary?', 1.0),
+(12, 'Are employees trained in security policies and procedures, including recognizing and responding to security incidents?', 1.0);
+
+
+
+USE PCI;
+
+-- Update the names and descriptions for the requirements based on the new PCI compliance checklist text
+
+UPDATE requirements SET name = 'Install and maintain a firewall configuration to protect cardholder data.'
+WHERE requirement_id = 1;
+
+UPDATE requirements SET name = 'Do not use vendor-supplied defaults for system passwords and other security parameters.'
+WHERE requirement_id = 2;
+
+UPDATE requirements SET name = 'Protect stored cardholder data.'
+WHERE requirement_id = 3;
+
+UPDATE requirements SET name = 'Encrypt transmission of cardholder data across open, public networks.'
+WHERE requirement_id = 4;
+
+UPDATE requirements SET name = 'Use and regularly update anti-virus software or programs.'
+WHERE requirement_id = 5;
+
+UPDATE requirements SET name = 'Develop and maintain secure systems and applications.'
+WHERE requirement_id = 6;
+
+UPDATE requirements SET name = 'Restrict access to cardholder data by business requirements.'
+WHERE requirement_id = 7;
+
+UPDATE requirements SET name = 'Assign a unique ID to each person with computer access.'
+WHERE requirement_id = 8;
+
+UPDATE requirements SET name = 'Restrict physical access to cardholder data.'
+WHERE requirement_id = 9;
+
+UPDATE requirements SET name = 'Track and monitor all access to network resources and cardholder data.'
+WHERE requirement_id = 10;
+
+UPDATE requirements SET name = 'Regularly test security systems and processes.'
+WHERE requirement_id = 11;
+
+UPDATE requirements SET name = 'Maintain a policy that addresses information security for all personnel.'
+WHERE requirement_id = 12;
+
+SELECT * FROM requirements;
+
+
+-- Objective Table
+CREATE TABLE objectives (
+    objective_id INT AUTO_INCREMENT PRIMARY KEY,
+    objective_name VARCHAR(255) NOT NULL
+);
+
+-- Add objective_id to requirements table
+ALTER TABLE requirements ADD COLUMN objective_id INT;
+ALTER TABLE requirements ADD FOREIGN KEY (objective_id) REFERENCES objectives(objective_id);
+
+-- Insert Objectives
+INSERT INTO objectives (objective_name) VALUES
+('Build and Maintain a Secure Network and Systems'),
+('Protect Cardholder Data'),
+('Maintain a Vulnerability Management Program'),
+('Implement Strong Access Control Measures'),
+('Regularly Monitor and Test Networks'),
+('Maintain an Information Security Policy');
+
+-- Link Requirements to Objectives
+UPDATE requirements SET objective_id = 1 WHERE requirement_id IN (1, 2);
+UPDATE requirements SET objective_id = 2 WHERE requirement_id IN (3, 4);
+UPDATE requirements SET objective_id = 3 WHERE requirement_id IN (5, 6);
+UPDATE requirements SET objective_id = 4 WHERE requirement_id IN (7, 8, 9);
+UPDATE requirements SET objective_id = 5 WHERE requirement_id IN (10, 11);
+UPDATE requirements SET objective_id = 6 WHERE requirement_id = 12;
+
+ALTER TABLE questions ADD COLUMN question_number VARCHAR(10);
+
+
+CREATE TABLE compliance_statuses (
+    user_id INT NOT NULL,
+    requirement_id INT NOT NULL,
+    compliance_status ENUM('Compliant', 'Not Compliant', 'N/A') NOT NULL,
+    PRIMARY KEY (user_id, requirement_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
+    FOREIGN KEY (requirement_id) REFERENCES requirements(requirement_id) ON DELETE CASCADE
+);
+
+INSERT INTO users (username, email, password);
+
+ALTER TABLE compliance_statuses MODIFY compliance_status VARCHAR(15);
+
+VALUES ('testuser', 'testuser@example.com', 'password123');
+use pci
+SELECT * FROM users WHERE user_id = 1;
+truncate table users;
+INSERT INTO users (username, email, password) VALUES ('testuser', 'testuser@example.com', 'password123');
